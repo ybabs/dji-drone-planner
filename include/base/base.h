@@ -19,6 +19,10 @@
 #include <dji_sdk/SetLocalPosRef.h>
 #include <dji_sdk/Activation.h>
 
+#include "gcs_msgs/Action.h"
+#include "gcs_msgs/Waypoint.h"
+#include "gcs_msgs/Missionparameters.h"
+
 
 #include "uav_agent/utils/utils.h"
 
@@ -37,7 +41,13 @@ class Base
         void altitudeCallback(const std_msgs::Float32::ConstPtr& msg);
         bool checkUAVType();
         bool setLocalPosition();
+        void flightAnomalyCallback(const dji_sdk::FlightAnomaly::ConstPtr &msg);
         void velocityCallback(const geometry_msgs::Vector3Stamped::ConstPtr& msg);
+        void missionParamCallback(const gcs_msgs::Missionparameters::ConstPtr &msg);
+        void missionPauseCallback(const std_msgs::UInt8::ConstPtr& msg);
+        void waypointCallback(const gcs_msgs::Waypoint::ConstPtr &msg);
+        void missionActionCallback(const gcs_msgs::Action::ConstPtr &msg);
+        void flightAnomalyCallback(const dji_sdk::FlightAnomaly::ConstPtr &msg)
         
 
     protected:
@@ -54,7 +64,11 @@ class Base
         ros::Subscriber attitude_subscriber;
         ros::Subscriber local_position_subscriber;
         ros::Subscriber velocity_subscriber;
-        ros::Subscriber 
+        ros::Subscriber param_subscriber;
+        ros::Subscriber waypoint_subscriber;
+        ros::Subscriber mission_status_subscriber;
+        ros::Subscriber mission_action_subscriber;
+        ros::Subscriber flight_anomaly_subscriber;
         
         geometry_msgs::Vector3Stamped velocity_data;
         geometry_msgs::Point current_local_position;

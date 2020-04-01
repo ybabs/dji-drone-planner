@@ -17,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   serial
   std_msgs
+  gcs_msgs
 )
 
 
@@ -30,6 +31,7 @@ catkin_package(
         geometry_msgs
         nav_msgs
         std_msgs
+        gcs_msgs
 
 )
 
@@ -41,6 +43,9 @@ include_directories(
 
 add_executable(${PROJECT_NAME}_node
                 src/pid.cpp
+                src/base.cpp
+                src/control.cpp
+                src/planner.cpp
 
 )
 
