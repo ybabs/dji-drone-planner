@@ -10,6 +10,11 @@
 #include "uav_agent/base/base.h"
 #include "uav_agent/base/control.h"
 
+#include "gcs_msgs/Action.h"
+#include "gcs_msgs/Waypoint.h"
+#include "gcs_msgs/Missionparameters.h"
+
+
 class Control;
 
 enum UavState
@@ -47,7 +52,11 @@ class Planner: public Base
         Eigen::Vector3d getHomeEffort(Eigen::Vector3d &target);
         Eigen::Vector3d setTarget(float x, float y, float z);
         Eigen::Vector3d setHomeTarget(float x, float y, float z);
-
+        void flightAnomalyCallback(const dji_sdk::FlightAnomaly::ConstPtr &msg)
+        void missionParamCallback(const gcs_msgs::Missionparameters::ConstPtr &msg);
+        void missionPauseCallback(const std_msgs::UInt8::ConstPtr& msg);
+        void waypointCallback(const gcs_msgs::Waypoint::ConstPtr &msg);
+        void missionActionCallback(const gcs_msgs::Action::ConstPtr &msg);
 
     private:
         Control control;
@@ -56,6 +65,12 @@ class Planner: public Base
         int vert_control;
         int waypoint_index;
         int waypoint_count;
+
+        int uav_speed;
+        int mission_end_action;
+        gcs_msgs::Waypoint waypoint;
+        int drone_action;
+        int play_pause;
 
         Eigen::3d target_position_vector;
         Eigen::3d home_position_vector;
@@ -66,8 +81,9 @@ class Planner: public Base
         float yaw_limit;
         float distance_to_setpoint;
         float xy_setpoint_dist;
-        bool drone_version;
+        int drone_version;
         int ctrl_flag;
+        uint32_t flight_anomaly_data;
 
         sensor_msgs::NavSatFix start_gps_location;
         sensor_msgs::NavSatFix home_gps_location;

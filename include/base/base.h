@@ -19,12 +19,19 @@
 #include <dji_sdk/SetLocalPosRef.h>
 #include <dji_sdk/Activation.h>
 
-#include "gcs_msgs/Action.h"
-#include "gcs_msgs/Waypoint.h"
-#include "gcs_msgs/Missionparameters.h"
-
 
 #include "uav_agent/utils/utils.h"
+
+struct UAV
+{
+    typedef enum
+    {
+        M100 = 0,
+        N3 = 1,
+        A3 = 2,
+        UNKNOWN = 2
+    } Type
+}
 
 class Base
 {
@@ -39,15 +46,12 @@ class Base
         void gpsCallback(const sensor_msgs::NavSatFix::ConstPtr& msg);
         void gpsHealthCallback(const std_msgs::UInt8::ConstPtr& msg);
         void altitudeCallback(const std_msgs::Float32::ConstPtr& msg);
-        bool checkUAVType();
+        UAV::Type checkUAVType();
         bool setLocalPosition();
         void flightAnomalyCallback(const dji_sdk::FlightAnomaly::ConstPtr &msg);
         void velocityCallback(const geometry_msgs::Vector3Stamped::ConstPtr& msg);
-        void missionParamCallback(const gcs_msgs::Missionparameters::ConstPtr &msg);
-        void missionPauseCallback(const std_msgs::UInt8::ConstPtr& msg);
-        void waypointCallback(const gcs_msgs::Waypoint::ConstPtr &msg);
-        void missionActionCallback(const gcs_msgs::Action::ConstPtr &msg);
-        void flightAnomalyCallback(const dji_sdk::FlightAnomaly::ConstPtr &msg)
+        
+        
         
 
     protected:
@@ -79,6 +83,7 @@ class Base
         uint8_t display_mode;
         uint8_t gps_health;
         float altitude_above_takeoff;
+        UAV::Type uav_model;
         
         ros::Time current_time;
         ros::Time prev_time
