@@ -3,8 +3,7 @@ project(uav_agent)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
  add_compile_options(-std=c++11)
- set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
-
+ 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -36,16 +35,16 @@ catkin_package(
 )
 
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
   include ${EIGEN3_INCLUDE_DIR}
 )
 
 add_executable(${PROJECT_NAME}_node
-                src/pid.cpp
-                src/base.cpp
-                src/control.cpp
-                src/planner.cpp
+                src/controllers/pid.cpp
+                src/base/base.cpp
+                src/base/control.cpp
+                src/base/planner.cpp
 
 )
 

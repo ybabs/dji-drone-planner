@@ -17,17 +17,18 @@
      float max_effort;
      float min_effort;
      float sample_time;
- } 
+ } ;
 
  class PIDController
  {
      public:
+        PIDController();
         void init(float kp, float ki, float kd, float max, float min);
         void reset();
         float update(float setpoint, float current, float dt);
      private:
         pid pid_;
         int index;
- }
+ };
 
 #endif

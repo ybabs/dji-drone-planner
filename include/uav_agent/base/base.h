@@ -30,17 +30,19 @@ struct UAV
         N3 = 1,
         A3 = 2,
         UNKNOWN = 2
-    } Type
-}
+    } Type;
+};
 
 class Base
 {
     public:
         Base();
         ~Base();
-        activate(); // activate UAV for SDK control
+        void activate(); // activate UAV for SDK control
         bool obtainControl();
         bool releaseControl();
+        void localPositionCallback(const geometry_msgs::PointStamped::ConstPtr &msg);
+        void attitudeCallback(const geometry_msgs::QuaternionStamped::ConstPtr &msg);
         void flightStatusCallback(const std_msgs::UInt8::ConstPtr& msg);
         void displayModeCallback(const std_msgs::UInt8::ConstPtr& msg);
         void gpsCallback(const sensor_msgs::NavSatFix::ConstPtr& msg);
@@ -68,11 +70,8 @@ class Base
         ros::Subscriber attitude_subscriber;
         ros::Subscriber local_position_subscriber;
         ros::Subscriber velocity_subscriber;
-        ros::Subscriber param_subscriber;
-        ros::Subscriber waypoint_subscriber;
-        ros::Subscriber mission_status_subscriber;
-        ros::Subscriber mission_action_subscriber;
-        ros::Subscriber flight_anomaly_subscriber;
+
+
         
         geometry_msgs::Vector3Stamped velocity_data;
         geometry_msgs::Point current_local_position;
@@ -86,7 +85,7 @@ class Base
         UAV::Type uav_model;
         
         ros::Time current_time;
-        ros::Time prev_time
+        ros::Time prev_time;
         double dt;
 
 

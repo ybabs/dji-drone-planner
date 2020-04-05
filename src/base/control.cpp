@@ -3,19 +3,19 @@
 using namespace DJI::OSDK;
 
 
-Control::Control()
+HLControl::HLControl()
 {
     motor_wait_time = 5;
     takeoff_timeout = 10;
     takeoff_altitude = 0.5;
 }
 
-void Control::takeoff()
+bool HLControl::takeoff()
 {
 
     ros::Time start_time = ros::Time::now();
 
-    if(uav_model ==== UAV::Type::N3 || UAV::Type::A3)
+    if(uav_model == UAV::Type::N3 || UAV::Type::A3)
     {
         if (!takeoffLand(dji_sdk::DroneTaskControl::Request::TASK_TAKEOFF))
         {
@@ -143,7 +143,7 @@ void Control::takeoff()
 
 }
 
-bool Control::land()
+bool HLControl::land()
 {
 
     float uav_land = computeTimeToLand();
@@ -179,7 +179,7 @@ bool Control::land()
         }
         // Final check: Finished Landing
         while ((display_mode == DJISDK::DisplayMode::MODE_AUTO_LANDING) &&
-                ros::Time::now() - start_time < ros::Duration(N3_land))
+                ros::Time::now() - start_time < ros::Duration(uav_land))
         {
             ros::Duration(0.01).sleep();
             ros::spinOnce();
@@ -212,7 +212,7 @@ bool Control::land()
         ros::spinOnce();
 
         // compute wait time to be based on relative altitude of drone / drone descent speed : which is at 1 m/s
-        while (ros::Time::now() - start_time < ros::Duration(rosTime_to_land) 
+        while (ros::Time::now() - start_time < ros::Duration(m100_time_to_land) 
               || flight_status == DJISDK::M100FlightStatus::M100_STATUS_LANDING)
         {
             ros::Duration(0.01).sleep();
@@ -237,7 +237,7 @@ bool Control::land()
 
 }
 
-void Control::rth()
+void HLControl::rth()
 {
     dji_sdk::DroneTaskControl droneTaskControl;
     droneTaskControl.request.task = dji_sdk::DroneTaskControl::Request::TASK_GOHOME;
@@ -250,7 +250,7 @@ void Control::rth()
     }
 }
 
-float Control::computeTimeToLand()
+float HLControl::computeTimeToLand()
 {
 
     float uav_land_speed;
@@ -277,16 +277,16 @@ float Control::computeTimeToLand()
 
     else if(uav_model == UAV::Type::N3 || UAV::Type::A3)
     {
-        droneLandSpeed = fabs(velocity_data.vector.z);
-        current_height = altitude_above_takeoff;
+        uav_land_speed = fabs(velocity_data.vector.z);
+        current_altitude = altitude_above_takeoff;
 
-        if (current_height >= 40)
+        if (current_altitude >= 40)
         {
-            land_time = (current_height / droneLandSpeed) + 50;
+            land_time = (current_altitude / uav_land_speed) + 50;
         }
         else
         {
-            land_time = (current_height / droneLandSpeed);
+            land_time = (current_altitude / uav_land_speed);
         }
 
         if (std::isnan(land_time))
@@ -310,7 +310,7 @@ float Control::computeTimeToLand()
     return land_time + 5;
 }
 
-void Control::takeoffLand(int task)
+bool HLControl::takeoffLand(int task)
 {
     dji_sdk::DroneTaskControl droneTaskControl;
     droneTaskControl.request.task = task;

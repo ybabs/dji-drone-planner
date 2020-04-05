@@ -1,7 +1,7 @@
 #include "uav_agent/base/base.h"
 
 
-using namespace DJI::OSDK
+using namespace DJI::OSDK;
 
 Base::Base()
 {
@@ -15,15 +15,11 @@ Base::Base()
    gps_subscriber = nh.subscribe("dji_sdk/gps_position", 10, &Base::gpsCallback, this);
    gps_health_subscriber = nh.subscribe("dji_sdk/gps_health", 10, &Base::gpsHealthCallback, this);
    flight_status_subscriber = nh.subscribe("dji_sdk/flight_status", 10, &Base::flightStatusCallback, this);
-   height_subscriber = nh.subscribe("/dji_sdk/height_above_takeoff",10, &Base::heightCallback, this);
+   altitude_subscriber = nh.subscribe("/dji_sdk/height_above_takeoff",10, &Base::altitudeCallback, this);
    velocity_subscriber = nh.subscribe("/dji_sdk/velocity", 10,  &Base::velocityCallback, this);  
    local_position_subscriber = nh.subscribe("/dji_sdk/local_position", 10, &Base::localPositionCallback, this);
    attitude_subscriber = nh.subscribe("/dji_sdk/attitude", 10, &Base::attitudeCallback, this);
-   param_subscriber = nh.subscribe("/gcs/params", 10, &Base::missionParamCallback, this);
-   waypoint_subscriber = nh.subscribe("/gcs/waypoint", 10, &Base::waypointCallback, this);
-   mission_pause_subscriber = nh.subscribe("/gcs/mission_pause", 10, &Base::missionPauseCallback, this);
-   mission_action_subscriber = nh.subscribe("/gcs/mission_action", 10, &Base::missionActionCallback, this );
-   flight_anomaly_subscriber = nh.subscribe("dji_sdk/flight_anomaly", 10, &Base::flightAnomalyCallback, this);
+
 
    checkUAVType();
 
@@ -61,10 +57,10 @@ Base::~Base()
 
 }
 
-Base::localPositionCallback(const geometry_msgs::PointStamped::ConstPtr& msg)
+void Base::localPositionCallback(const geometry_msgs::PointStamped::ConstPtr& msg)
 {
      current_local_position = msg->point;
-     prev_time = now;
+     
 
 }
 
@@ -75,7 +71,7 @@ void Base::attitudeCallback(const geometry_msgs::QuaternionStamped::ConstPtr& ms
 
 void Base::altitudeCallback(const std_msgs::Float32::ConstPtr& msg)
 {
-    height_above_takeoff = msg->data;
+    altitude_above_takeoff = msg->data;
 
 }
 
@@ -135,24 +131,27 @@ UAV::Type Base::checkUAVType()
 {
    dji_sdk::QueryDroneVersion query;
    query_version_service.call(query);
+   
 
-   if(query.response.hardware == DJISDK::AircraftVersion::M100)
+   if(query.response.hardware == std::string(Version::M100))
    {
 
       uav_model = UAV::Type::M100;
 
    }
 
-   else if (query.response.hardware == DJISDK::AircraftVersion::N3)
+   else if (query.response.hardware ==  std::string(Version::N3))
    {
       uav_model = UAV::Type::N3;
    }
 
-   else if (query.response.hardware == DJISDK::AircraftVersion::A3)
+   else if (query.response.hardware ==  std::string(Version::A3))
    {
-      uav_model = UAV::Type::A3
+      uav_model = UAV::Type::A3;
 
    }
+
+   return uav_model;
 }
 
 bool Base::releaseControl()
@@ -169,11 +168,13 @@ bool Base::releaseControl()
     if(!authority.response.result)
     {
         ROS_INFO("Program failed to release control");
-        return true;
+        return false;
     }
+
+    return true;
 }
 
-bool FlightBase::obtainControl()
+bool Base::obtainControl()
 {
     dji_sdk::SDKControlAuthority authority;
     authority.request.control_enable = 1;

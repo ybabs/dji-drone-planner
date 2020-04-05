@@ -3,9 +3,10 @@
 
 #include "uav_agent/base/base.h"
 
-class Control : public Base
+class HLControl : public Base
 {
     public:
+        HLControl();
         bool takeoff();
         bool land();
         void rth();

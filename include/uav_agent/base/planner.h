@@ -15,7 +15,7 @@
 #include "gcs_msgs/Missionparameters.h"
 
 
-class Control;
+class HLControl;
 
 enum UavState
 {
@@ -52,14 +52,14 @@ class Planner: public Base
         Eigen::Vector3d getHomeEffort(Eigen::Vector3d &target);
         Eigen::Vector3d setTarget(float x, float y, float z);
         Eigen::Vector3d setHomeTarget(float x, float y, float z);
-        void flightAnomalyCallback(const dji_sdk::FlightAnomaly::ConstPtr &msg)
+        void flightAnomalyCallback(const dji_sdk::FlightAnomaly::ConstPtr &msg);
         void missionParamCallback(const gcs_msgs::Missionparameters::ConstPtr &msg);
         void missionPauseCallback(const std_msgs::UInt8::ConstPtr& msg);
         void waypointCallback(const gcs_msgs::Waypoint::ConstPtr &msg);
         void missionActionCallback(const gcs_msgs::Action::ConstPtr &msg);
 
     private:
-        Control control;
+        HLControl control;
 
         int uav_state; // 
         int vert_control;
@@ -72,8 +72,8 @@ class Planner: public Base
         int drone_action;
         int play_pause;
 
-        Eigen::3d target_position_vector;
-        Eigen::3d home_position_vector;
+        Eigen::Vector3d target_position_vector;
+        Eigen::Vector3d home_position_vector;
         float target_yaw_angle;
         float desired_yaw_angle;
         float current_yaw_angle;
