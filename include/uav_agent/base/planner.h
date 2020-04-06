@@ -17,13 +17,20 @@
 
 class HLControl;
 
-enum UavState
+enum MissionState
 {
     IDLE = 0,
     NEW_WAYPOINT = 1,
     ARRIVED = 2,
     FINISHED = 3,
     RTH = 4
+};
+
+enum MissionEndAction
+{
+    RTH = 0,
+    HOVER = 1,
+    LAND = 2
 };
 
 class Planner: public Base
@@ -33,7 +40,6 @@ class Planner: public Base
         ~Planner();
         void setWaypoint(sensor_msgs::NavSatFix new_waypoint);
         void fly();
-        void reset();
         void horizontalControl();
         void flyHome();
         void setYawAngle();
@@ -43,14 +49,14 @@ class Planner: public Base
         void onWaypointReached();
         void onMissionFinished();
         void runMission();
-        void prepareFlightPlan(double lat, double lon, double alt, unsigned char sampling_task, float samplingTime);
-        void appendFlightPlan(sensor_msgs::NavSatFix newWaypoint, unsigned char land, float samplingTime);
+        void prepareFlightPlan(gcs_msgs::Waypoint waypoint);
+        void appendFlightPlan(gcs_msgs::Waypoint waypoint);
         void droneControlSignal(double x, double y, double z, double yaw, bool use_yaw_rate = true, bool use_ground_frame = true);
         void setZOffset(double offset);
         Eigen::Vector3d getEffort(Eigen::Vector3d &target);
         Eigen::Vector2d getHorizontalEffort(Eigen::Vector2d &target);
         Eigen::Vector3d getHomeEffort(Eigen::Vector3d &target);
-        Eigen::Vector3d setTarget(float x, float y, float z);
+        Eigen::Vector3d setTargetVector(float target_x, float target_y, float target_z);
         Eigen::Vector3d setHomeTarget(float x, float y, float z);
         void flightAnomalyCallback(const dji_sdk::FlightAnomaly::ConstPtr &msg);
         void missionParamCallback(const gcs_msgs::Missionparameters::ConstPtr &msg);
@@ -62,13 +68,13 @@ class Planner: public Base
         HLControl control;
 
         int uav_state; // 
-        int vert_control;
+        int alti_control;
         int waypoint_index;
         int waypoint_count;
 
         int uav_speed;
         int mission_end_action;
-        gcs_msgs::Waypoint waypoint;
+       // gcs_msgs::Waypoint waypoint;
         int drone_action;
         int play_pause;
 
@@ -80,6 +86,7 @@ class Planner: public Base
         float z_offset_takeoff;
         float yaw_limit;
         float distance_to_setpoint;
+        float target_norm;
         float xy_setpoint_dist;
         int drone_version;
         int ctrl_flag;
@@ -90,7 +97,13 @@ class Planner: public Base
         sensor_msgs::NavSatFix home_start_gps_location;
         geometry_msgs::Point start_local_position;
 
-        std::vector<sensor_msgs::NavSatFix> flight_plan;
+        std::vector<gcs_msgs::Waypoint> flight_plan;
+
+        ros::Subscriber param_subscriber;
+        ros::Subscriber waypoint_subscriber;
+        ros::Subscriber mission_pause_subscriber;
+        ros::Subscriber mission_action_subscriber;
+        ros::Subscriber flight_anomaly_subscriber;
 
         // check if landing is required at the waypoint
          std::queue<std::tuple<std::vector<sensor_msgs::NavSatFix>, unsigned char, float>> waypoint_lists;
