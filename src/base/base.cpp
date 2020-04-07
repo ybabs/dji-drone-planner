@@ -59,7 +59,12 @@ Base::~Base()
 
 void Base::localPositionCallback(const geometry_msgs::PointStamped::ConstPtr& msg)
 {
+     current_time = ros::Time::now();
+      ros::Duration time = current_time - prev_time;
      current_local_position = msg->point;
+     prev_time = current_time;
+
+     dt = time.toSec();
      
 
 }

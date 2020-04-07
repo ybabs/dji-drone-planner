@@ -16,6 +16,7 @@
 
 
 class HLControl;
+class PIDController;
 
 enum MissionState
 {
@@ -26,12 +27,6 @@ enum MissionState
     RTH = 4
 };
 
-enum MissionEndAction
-{
-    RTH = 0,
-    HOVER = 1,
-    LAND = 2
-};
 
 class Planner: public Base
 {
@@ -40,7 +35,7 @@ class Planner: public Base
         ~Planner();
         void setWaypoint(sensor_msgs::NavSatFix new_waypoint);
         void fly();
-        void horizontalControl();
+        //void horizontalControl();
         void flyHome();
         void setYawAngle();
         void getLocalPositionOffset(geometry_msgs::Vector3 &deltaENU, sensor_msgs::NavSatFix &target, sensor_msgs::NavSatFix &origin);
@@ -66,6 +61,8 @@ class Planner: public Base
 
     private:
         HLControl control;
+        PIDController pid_pos;
+        PIDController pid_yaw;
 
         int uav_state; // 
         int alti_control;
@@ -86,11 +83,14 @@ class Planner: public Base
         float z_offset_takeoff;
         float yaw_limit;
         float distance_to_setpoint;
+        float home_target_norm;
+        float home_distance;
         float target_norm;
         float xy_setpoint_dist;
         int drone_version;
         int ctrl_flag;
         uint32_t flight_anomaly_data;
+        float kp, ki, kd;
 
         sensor_msgs::NavSatFix start_gps_location;
         sensor_msgs::NavSatFix home_gps_location;

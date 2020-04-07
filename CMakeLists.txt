@@ -1,8 +1,15 @@
 cmake_minimum_required(VERSION 2.8.3)
+if (POLICY CMP0048)
+  # cmake warns if loaded from a min-3.0-required parent dir, so silence the warning:
+  cmake_policy(SET CMP0048 NEW)
+endif()
 project(uav_agent)
+
+
 
 ## Compile as C++11, supported in ROS Kinetic and newer
  add_compile_options(-std=c++11)
+ add_compile_options(-Wno-psabi)
  
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -55,8 +62,7 @@ target_link_libraries(${PROJECT_NAME}_node
                       )
 
 add_dependencies(${PROJECT_NAME}_node
-                 ${PROJECT_NAME}_generate_messages_cpp
-                  )
+                  ${catkin_EXPORTED_TARGETS})
 
 install(DIRECTORY launch
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
