@@ -39,9 +39,13 @@ float PIDController::update(float setpoint, float actual, float dt)
     pid_.target_effort = setpoint;
     pid_.current_effort = actual;
     pid_.sample_time = dt;
+    //ROS_INFO("Setpoint = %f",  pid_.target_effort);
+   // ROS_INFO("Actual = %f", pid_.current_effort);
+
     
     pid_.error = pid_.target_effort - pid_.current_effort;
     pid_.integral += pid_.error *pid_.sample_time;
+   // ROS_INFO("Error = %f", pid_.error);
 
     if(pid_.integral > pid_.max_effort)
     {
