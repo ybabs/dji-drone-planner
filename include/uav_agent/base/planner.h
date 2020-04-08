@@ -10,9 +10,9 @@
 #include "uav_agent/base/base.h"
 #include "uav_agent/base/control.h"
 
-#include "gcs_msgs/Action.h"
-#include "gcs_msgs/Waypoint.h"
-#include "gcs_msgs/Missionparameters.h"
+#include "gcs/Action.h"
+#include "gcs/Waypoint.h"
+#include "gcs/Missionparameters.h"
 
 
 class HLControl;
@@ -44,8 +44,8 @@ class Planner: public Base
         void onWaypointReached();
         void onMissionFinished();
         void runMission();
-        void prepareFlightPlan(gcs_msgs::Waypoint waypoint);
-        void appendFlightPlan(gcs_msgs::Waypoint waypoint);
+        void prepareFlightPlan(gcs::Waypoint waypoint);
+        void appendFlightPlan(gcs::Waypoint waypoint);
         void droneControlSignal(double x, double y, double z, double yaw, bool use_yaw_rate = true, bool use_ground_frame = true);
         void setZOffset(double offset);
         Eigen::Vector3d getEffort(Eigen::Vector3d &target);
@@ -54,10 +54,10 @@ class Planner: public Base
         Eigen::Vector3d setTargetVector(float target_x, float target_y, float target_z);
         Eigen::Vector3d setHomeTarget(float x, float y, float z);
         void flightAnomalyCallback(const dji_sdk::FlightAnomaly::ConstPtr &msg);
-        void missionParamCallback(const gcs_msgs::Missionparameters::ConstPtr &msg);
+        void missionParamCallback(const gcs::Missionparameters::ConstPtr &msg);
         void missionPauseCallback(const std_msgs::UInt8::ConstPtr& msg);
-        void waypointCallback(const gcs_msgs::Waypoint::ConstPtr &msg);
-        void missionActionCallback(const gcs_msgs::Action::ConstPtr &msg);
+        void waypointCallback(const gcs::Waypoint::ConstPtr &msg);
+        void missionActionCallback(const gcs::Action::ConstPtr &msg);
 
     private:
         HLControl control;
@@ -71,7 +71,7 @@ class Planner: public Base
 
         int uav_speed;
         int mission_end_action;
-       // gcs_msgs::Waypoint waypoint;
+       // gcs::Waypoint waypoint;
         int drone_action;
         int play_pause;
 
@@ -97,7 +97,7 @@ class Planner: public Base
         sensor_msgs::NavSatFix home_start_gps_location;
         geometry_msgs::Point start_local_position;
 
-        std::vector<gcs_msgs::Waypoint> flight_plan;
+        std::vector<gcs::Waypoint> flight_plan;
 
         ros::Subscriber param_subscriber;
         ros::Subscriber waypoint_subscriber;

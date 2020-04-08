@@ -23,7 +23,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   serial
   std_msgs
-  gcs_msgs
+  gcs
 )
 
 
@@ -37,7 +37,7 @@ catkin_package(
         geometry_msgs
         nav_msgs
         std_msgs
-        gcs_msgs
+        gcs
 
 )
 

@@ -60,7 +60,7 @@ Eigen::Vector3d Planner::setTargetVector(float target_x, float target_y, float t
    return target_position_vector;
 }
 
-void Planner::prepareFlightPlan(gcs_msgs::Waypoint waypoint)
+void Planner::prepareFlightPlan(gcs::Waypoint waypoint)
 {
 
    float altitude_offset = current_gps_location.altitude;
@@ -74,7 +74,7 @@ void Planner::prepareFlightPlan(gcs_msgs::Waypoint waypoint)
 
 }
 
-void Planner::appendFlightPlan(gcs_msgs::Waypoint new_waypoint)
+void Planner::appendFlightPlan(gcs::Waypoint new_waypoint)
 {
    // add new waypoint to vector
    flight_plan.push_back(new_waypoint);
@@ -89,7 +89,7 @@ void Planner::appendFlightPlan(gcs_msgs::Waypoint new_waypoint)
 
 void Planner::onWaypointReached()
 {
-   gcs_msgs::Waypoint current_waypoint = flight_plan[waypoint_index];
+   gcs::Waypoint current_waypoint = flight_plan[waypoint_index];
    uint8_t checkTask = current_waypoint.sample;
    float recording_time = current_waypoint.sampleTime;
 
@@ -352,7 +352,7 @@ void Planner::runMission()
          {
             waypoint_finished = false;
             yaw_flag = true;
-            gcs_msgs::Waypoint temp_waypoint = flight_plan[waypoint_index];
+            gcs::Waypoint temp_waypoint = flight_plan[waypoint_index];
             sensor_msgs::NavSatFix waypoint_global_coords;
             waypoint_global_coords.latitude = temp_waypoint.latitude;
             waypoint_global_coords.longitude = temp_waypoint.longitude;
@@ -408,7 +408,7 @@ void Planner::runMission()
             yaw_flag = true;
             start_gps_location = current_gps_location;
             start_local_position = current_local_position;
-            gcs_msgs::Waypoint temp_waypoint = flight_plan[waypoint_index];
+            gcs::Waypoint temp_waypoint = flight_plan[waypoint_index];
             sensor_msgs::NavSatFix waypoint_global_coords;
             waypoint_global_coords.latitude = temp_waypoint.latitude;
             waypoint_global_coords.longitude = temp_waypoint.longitude;
@@ -558,7 +558,7 @@ Eigen::Vector2d Planner::getHorizontalEffort(Eigen::Vector2d &target)
    return position_unit_vector;
 }
 
-void Planner::missionParamCallback(const gcs_msgs::Missionparameters::ConstPtr &msg)
+void Planner::missionParamCallback(const gcs::Missionparameters::ConstPtr &msg)
 {
    uav_speed = msg->uavSpeed;
    mission_end_action = msg->missionEndAction;
@@ -574,10 +574,10 @@ void Planner::missionPauseCallback(const std_msgs::UInt8::ConstPtr& msg)
    }
 }
 
-void Planner::waypointCallback(const gcs_msgs::Waypoint::ConstPtr &msg)
+void Planner::waypointCallback(const gcs::Waypoint::ConstPtr &msg)
 {
 
-    gcs_msgs::Waypoint waypoint;
+    gcs::Waypoint waypoint;
 
    waypoint.latitude = msg->latitude;
    waypoint.longitude = msg->longitude;
@@ -589,7 +589,7 @@ void Planner::waypointCallback(const gcs_msgs::Waypoint::ConstPtr &msg)
 }
 
 
-void Planner::missionActionCallback(const gcs_msgs::Action::ConstPtr &msg)
+void Planner::missionActionCallback(const gcs::Action::ConstPtr &msg)
 {
     drone_action = msg->droneaction;
     switch(drone_action)
