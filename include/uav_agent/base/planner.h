@@ -7,6 +7,7 @@
 #include <queue>
 
 #include "uav_agent/controllers/pid.h"
+#include "uav_agent/controllers/pid_alt.h"
 #include "uav_agent/base/base.h"
 #include "uav_agent/base/control.h"
 
