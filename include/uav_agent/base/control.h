@@ -8,6 +8,8 @@ class HLControl : public Base
     public:
         HLControl();
         bool takeoff();
+        bool M100Takeoff();
+        bool M100Land();
         bool land();
         void rth();
         float computeTimeToLand();
