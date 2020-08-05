@@ -10,10 +10,112 @@ HLControl::HLControl()
     takeoff_altitude = 0.5;
 }
 
+bool HLControl::M100Takeoff()
+{
+    ros::Time start_time = ros::Time::now();
+    float home_takeoff = altitude_above_takeoff;
+        if (!takeoffLand(dji_sdk::DroneTaskControl::Request::TASK_TAKEOFF))
+        {
+            ROS_INFO("Takeoff Service failed");
+            return false;
+        }
+
+        ros::Duration(0.01).sleep();
+        ros::spinOnce();
+
+        // Step 1: If M100 is not in the air after timeout seconds, fail.
+        while (ros::Time::now() - start_time < ros::Duration(takeoff_timeout))
+        {
+            ros::Duration(0.01).sleep();
+            ros::spinOnce();
+        }
+
+        if (flight_status != DJISDK::M100FlightStatus::M100_STATUS_IN_AIR || altitude_above_takeoff - home_takeoff < takeoff_altitude)
+        {
+            if (flight_status == DJISDK::M100FlightStatus::M100_STATUS_FINISHED_LANDING)
+            {
+            ROS_ERROR("Flight status: Drone Finished Landing");
+            }
+
+            if (flight_status == DJISDK::M100FlightStatus::M100_STATUS_LANDING)
+            {
+            ROS_ERROR("Flight status: Drone Landing");
+            }
+
+            if (flight_status == DJISDK::M100FlightStatus::M100_STATUS_ON_GROUND)
+            {
+            ROS_ERROR("Flight status: Drone still on the ground");
+            }
+
+            if (flight_status == DJISDK::M100FlightStatus::M100_STATUS_TAKINGOFF)
+            {
+            ROS_INFO("Flight status: Drone Taking off");
+            }
+            ROS_INFO("Home Takeoff point: %f", home_takeoff);
+            ROS_INFO("Current Height above takeoff position: %f", home_takeoff);
+            ROS_INFO("Difference: %f m", altitude_above_takeoff - home_takeoff);
+
+            ROS_ERROR("Takeoff failed.");
+
+            return false;
+        }
+
+        else
+        {
+            start_time = ros::Time::now();
+            ROS_INFO("Successful takeoff!");
+            ros::spinOnce();
+        }
+
+        return true;
+
+}
+
+bool HLControl::M100Land()
+{
+     ros::Time start_time = ros::Time::now();
+    float m100_time_to_land = computeTimeToLand() + 5;
+    float home_altitude = current_gps_location.altitude;
+
+    if (!takeoffLand(dji_sdk::DroneTaskControl::Request::TASK_LAND))
+    {
+        return false;
+    }
+
+    ros::Duration(0.01).sleep();
+    ros::spinOnce();
+
+    // compute wait time to be based on relative altitude of drone / drone descent speed : which is at 1 m/s
+    while (ros::Time::now() - start_time < ros::Duration(m100_time_to_land) 
+            || flight_status == DJISDK::M100FlightStatus::M100_STATUS_LANDING)
+    {
+        ros::Duration(0.01).sleep();
+        ros::spinOnce();
+    }
+
+    if (flight_status != DJISDK::M100FlightStatus::M100_STATUS_ON_GROUND ||
+        current_gps_location.altitude - home_altitude > 1.0)
+    {
+        ROS_ERROR_ONCE("Landing failed.");
+        return false;
+    }
+    else
+    {
+        start_time = ros::Time::now();
+        ROS_INFO_ONCE("Successful Landing!");
+        ros::spinOnce();
+    }
+
+    return true;
+    
+ 
+}
+
 bool HLControl::takeoff()
 {
 
     ros::Time start_time = ros::Time::now();
+     std::cout<< uav_model << std::endl;
 
     if(uav_model == UAV::Type::N3 || UAV::Type::A3)
     {
@@ -80,65 +182,7 @@ bool HLControl::takeoff()
         }
 
     }
-
-    else if(uav_model == UAV::Type::M100)
-    {
-
-        float home_takeoff = altitude_above_takeoff;
-        if (!takeoffLand(dji_sdk::DroneTaskControl::Request::TASK_TAKEOFF))
-        {
-            ROS_INFO("Takeoff Service failed");
-            return false;
-        }
-
-        ros::Duration(0.01).sleep();
-        ros::spinOnce();
-
-        // Step 1: If M100 is not in the air after timeout seconds, fail.
-        while (ros::Time::now() - start_time < ros::Duration(takeoff_timeout))
-        {
-            ros::Duration(0.01).sleep();
-            ros::spinOnce();
-        }
-
-        if (flight_status != DJISDK::M100FlightStatus::M100_STATUS_IN_AIR || altitude_above_takeoff - home_takeoff < takeoff_altitude)
-        {
-            if (flight_status == DJISDK::M100FlightStatus::M100_STATUS_FINISHED_LANDING)
-            {
-            ROS_ERROR("Flight status: Drone Finished Landing");
-            }
-
-            if (flight_status == DJISDK::M100FlightStatus::M100_STATUS_LANDING)
-            {
-            ROS_ERROR("Flight status: Drone Landing");
-            }
-
-            if (flight_status == DJISDK::M100FlightStatus::M100_STATUS_ON_GROUND)
-            {
-            ROS_ERROR("Flight status: Drone still on the ground");
-            }
-
-            if (flight_status == DJISDK::M100FlightStatus::M100_STATUS_TAKINGOFF)
-            {
-            ROS_INFO("Flight status: Drone Taking off");
-            }
-            ROS_INFO("Home Takeoff point: %f", home_takeoff);
-            ROS_INFO("Current Height above takeoff position: %f", home_takeoff);
-            ROS_INFO("Difference: %f m", altitude_above_takeoff - home_takeoff);
-
-            ROS_ERROR("Takeoff failed.");
-
-            return false;
-        }
-
-        else
-        {
-            start_time = ros::Time::now();
-            ROS_INFO("Successful takeoff!");
-            ros::spinOnce();
-        }
-
-    }
+        
     return true;
 
 }
@@ -148,6 +192,7 @@ bool HLControl::land()
 
     float uav_land = computeTimeToLand();
     ros::Time start_time = ros::Time::now();
+     
     if(uav_model == UAV::Type::N3 || UAV::Type::A3)
     {
         if (!takeoffLand(dji_sdk::DroneTaskControl::Request::TASK_LAND))
@@ -197,41 +242,7 @@ bool HLControl::land()
             ros::spinOnce();
         }
     }
-    else if(uav_model == UAV::Type::M100)
-    {
-
-        float m100_time_to_land = computeTimeToLand() + 5;
-        float home_altitude = current_gps_location.altitude;
-
-        if (!takeoffLand(dji_sdk::DroneTaskControl::Request::TASK_LAND))
-        {
-            return false;
-        }
-
-        ros::Duration(0.01).sleep();
-        ros::spinOnce();
-
-        // compute wait time to be based on relative altitude of drone / drone descent speed : which is at 1 m/s
-        while (ros::Time::now() - start_time < ros::Duration(m100_time_to_land) 
-              || flight_status == DJISDK::M100FlightStatus::M100_STATUS_LANDING)
-        {
-            ros::Duration(0.01).sleep();
-            ros::spinOnce();
-        }
-
-        if (flight_status != DJISDK::M100FlightStatus::M100_STATUS_ON_GROUND ||
-            current_gps_location.altitude - home_altitude > 1.0)
-        {
-            ROS_ERROR_ONCE("Landing failed.");
-            return false;
-        }
-        else
-        {
-            start_time = ros::Time::now();
-            ROS_INFO_ONCE("Successful Landing!");
-            ros::spinOnce();
-        }
-    }
+    
 
     return true;
 

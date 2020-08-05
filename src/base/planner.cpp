@@ -107,8 +107,16 @@ void Planner::onWaypointReached()
       if(checkTask == 1)
       {  
          bool initiate_record;
-
-         initiate_record = control.land();
+         
+         if(uav_model == UAV::Type::M100)
+         {
+             initiate_record = control.M100Land();
+         }
+         else
+         {
+            initiate_record = control.land();
+         }
+        
 
          if(initiate_record)
          {
@@ -117,20 +125,49 @@ void Planner::onWaypointReached()
              
              // check if we are not at the last waypoint
              // and if mission end is set to autoland
-             if(flight_plan.size() > 1)
+             if(uav_model == UAV::Type::M100)
              {
-                alti_control = 1;
-                control.takeoff();
-                ROS_INFO("first case");
+
+                ROS_INFO("M100 UAV Takeoff");
+
+               if(flight_plan.size() > 1)
+               {
+                  alti_control = 1;
+                  control.M100Takeoff();
+                  ROS_INFO("first case");
+               }
+
+               //if we need to return home
+               if(flight_plan.size() <=1 && mission_end_action == 2)
+               {
+                  ROS_INFO("Second Case");
+                  alti_control = 1;
+                  control.M100Takeoff();
+               }
+
+             }
+             else
+             {
+
+               ROS_INFO("N3/A3 UAV Takeoff");
+
+               if(flight_plan.size() > 1)
+               {
+                  alti_control = 1;
+                  control.takeoff();
+                  ROS_INFO("first case");
+               }
+
+               //if we need to return home
+               if(flight_plan.size() <=1 && mission_end_action == 2)
+               {
+                  ROS_INFO("Second Case");
+                  alti_control = 1;
+                  control.takeoff();
+               }
+
              }
 
-             //if we need to return home
-             if(flight_plan.size() <=1 && mission_end_action == 2)
-             {
-                ROS_INFO("Second Case");
-                alti_control = 1;
-                control.takeoff();
-             }
          }
 
          else
@@ -308,7 +345,17 @@ void Planner::flyHome()
     if(home_distance <= 1)
     {
        droneControlSignal(0,0,0,0);
-       control.land();
+       if(uav_model == UAV::Type::M100)
+       {
+          control.M100Land();
+
+       }
+       else{
+
+         control.land();
+
+       }
+     
        rth_complete = true;
     }
 
@@ -487,7 +534,14 @@ void Planner::runMission()
 
             case 3:
             {
-               control.land();
+               if(uav_model == UAV::Type::M100)
+               {
+                  control.M100Land();
+               }
+               else
+               {
+                  control.land();
+               }
                uav_state = MissionState::IDLE;
                break;
             }
@@ -622,36 +676,63 @@ void Planner::missionPauseCallback(const std_msgs::UInt8::ConstPtr& msg)
 void Planner::waypointCallback(const gcs::Waypoint::ConstPtr &msg)
 {
 
-    gcs::Waypoint waypoint;
+   if(msg->id == 1)
+   {
+       gcs::Waypoint waypoint;
 
-   waypoint.latitude = msg->latitude;
-   waypoint.longitude = msg->longitude;
-   waypoint.altitude = msg->altitude;
-   waypoint.sample = msg->sample;
-   waypoint.sampleTime = msg-> sampleTime;
+      waypoint.latitude = msg->latitude;
+      waypoint.longitude = msg->longitude;
+      waypoint.altitude = msg->altitude;
+      waypoint.sample = msg->sample;
+      waypoint.sampleTime = msg-> sampleTime;
 
-   prepareFlightPlan(waypoint);
+      prepareFlightPlan(waypoint);
+   }
+
 }
 
 
 void Planner::missionActionCallback(const gcs::Action::ConstPtr &msg)
 {
+   ROS_INFO("Callbacvk");
+   if(msg->id == 1)
+   {
     drone_action = msg->droneaction;
     switch(drone_action)
     {
        case 1:
        {
-          ROS_INFO("UAV taking off");
-          control.takeoff();
+         
+          if(uav_model == UAV::Type::M100)
+          {
+             ROS_INFO("M100 UAV taking off");
+             control.M100Takeoff();
+          }
+          else
+          {
+             ROS_INFO("N3/A3 UAV taking off");
+             control.takeoff();
+          }
+          
           break;
        }
 
        case 2:
        {
           ROS_INFO("UAV landing");
-          control.land();
+          if(uav_model == UAV::Type::M100)
+          {
+             control.M100Land();
+          }
+
+          else
+          {
+              control.land();
+          }
+         
           break;
        }
+
 
        case 3:
        {
@@ -671,8 +752,21 @@ void Planner::missionActionCallback(const gcs::Action::ConstPtr &msg)
           // Set home GPS altitude as a 5 metre offset. 
           //TODO make this changeable in GCS settings
           home_gps_location.altitude = current_gps_location.altitude + 5.0;
+          bool is_takeoff;
 
-          bool is_takeoff = control.takeoff();
+          if(uav_model == UAV::Type::M100)
+          {
+               ROS_INFO("M100 Taking off");
+              is_takeoff =  control.M100Takeoff();
+          }
+
+          else
+          {
+               ROS_INFO("A3/N3 Taking off");
+               is_takeoff = control.takeoff();
+          }
+
+          
           if(is_takeoff)
           {
              // Initialise PID
@@ -709,6 +803,9 @@ void Planner::missionActionCallback(const gcs::Action::ConstPtr &msg)
           break;
        }
     }
+
+   }
+   
 }
 
 void Planner::flightAnomalyCallback(const dji_sdk::FlightAnomaly::ConstPtr &msg)
