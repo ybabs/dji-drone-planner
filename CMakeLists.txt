@@ -49,6 +49,7 @@ include_directories(
 
 add_executable(${PROJECT_NAME}_node
                 src/controllers/pid.cpp
+                src/controllers/pid_alt.cpp
                 src/base/base.cpp
                 src/base/control.cpp
                 src/base/planner.cpp

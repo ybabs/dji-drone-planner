@@ -1,12 +1,29 @@
 #ifndef PLANNER_H
 #define PLANNER_H
 
+/* Controller parameters */
+#define PID_KP  2.0f
+#define PID_KI  0.5f
+#define PID_KD  0.25f
+
+#define PID_TAU 0.04f
+
+#define PID_LIM_MIN -10.0f
+#define PID_LIM_MAX  10.0f
+
+#define PID_LIM_MIN_INT -5.0f
+#define PID_LIM_MAX_INT  5.0f
+
+#define SAMPLE_TIME_S 0.02f
+
 #include <tuple>
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 #include <queue>
 
-#include "uav_agent/controllers/pid.h"
+ #include "uav_agent/controllers/pid.h"
+//#include "uav_agent/controllers/pid_alt.h"
+
 #include "uav_agent/base/base.h"
 #include "uav_agent/base/control.h"
 
@@ -62,6 +79,7 @@ class Planner: public Base
     private:
         HLControl control;
         PIDController pid_pos;
+        PIDController pid_z;
         PIDController pid_yaw;
 
         int uav_state; // 
@@ -83,14 +101,17 @@ class Planner: public Base
         float z_offset_takeoff;
         float yaw_limit;
         float distance_to_setpoint;
+        float xy_setpoint_dist;
         float home_target_norm;
         float home_distance;
         float target_norm;
-        float xy_setpoint_dist;
+        float hori_target_norm;
         int drone_version;
         int ctrl_flag;
         uint32_t flight_anomaly_data;
         float kp, ki, kd;
+        float kp_z, ki_z, kd_z;
+       
 
         sensor_msgs::NavSatFix start_gps_location;
         sensor_msgs::NavSatFix home_gps_location;
@@ -105,8 +126,6 @@ class Planner: public Base
         ros::Subscriber mission_action_subscriber;
         ros::Subscriber flight_anomaly_subscriber;
 
-        // check if landing is required at the waypoint
-         std::queue<std::tuple<std::vector<sensor_msgs::NavSatFix>, unsigned char, float>> waypoint_lists;
          bool waypoint_finished;
          bool yaw_flag;
          bool takeoff_result;
