@@ -126,6 +126,8 @@ class Planner: public Base
         ros::Subscriber mission_action_subscriber;
         ros::Subscriber flight_anomaly_subscriber;
 
+        ros::Publisher daqrecord_publisher;
+
          bool waypoint_finished;
          bool yaw_flag;
          bool takeoff_result;

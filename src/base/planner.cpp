@@ -10,6 +10,7 @@ Planner::Planner()
    flight_anomaly_subscriber = nh.subscribe("a3/flight_anomaly", 10, &Planner::flightAnomalyCallback, this);
 
     control_publisher = nh.advertise<sensor_msgs::Joy>("a3/flight_control_setpoint_generic", 10);
+    daqrecord_publisher = nh.advertise<std_msgs::UInt8>("uav_agent/record", 10);
 
    bool control_res;
    control_res = obtainControl();
