@@ -189,12 +189,9 @@ bool HLControl::takeoff()
 
 bool HLControl::land()
 {
-
     float uav_land = computeTimeToLand();
     ros::Time start_time = ros::Time::now();
      
-    if(uav_model == UAV::Type::N3 || UAV::Type::A3)
-    {
         if (!takeoffLand(dji_sdk::DroneTaskControl::Request::TASK_LAND))
         {
             return false;
@@ -241,9 +238,7 @@ bool HLControl::land()
             start_time = ros::Time::now();
             ros::spinOnce();
         }
-    }
     
-
     return true;
 
 }

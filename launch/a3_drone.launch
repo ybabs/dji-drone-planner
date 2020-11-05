@@ -1,0 +1,5 @@
+<launch>
+    <node pkg="uav_agent" type="uav_agent_node" name="a3_agent" output ="screen">
+    </node>
+
+</launch>
