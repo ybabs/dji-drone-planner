@@ -1,32 +1,14 @@
 #ifndef PLANNER_H
 #define PLANNER_H
 
-/* Controller parameters */
-#define PID_KP  2.0f
-#define PID_KI  0.5f
-#define PID_KD  0.25f
-
-#define PID_TAU 0.04f
-
-#define PID_LIM_MIN -10.0f
-#define PID_LIM_MAX  10.0f
-
-#define PID_LIM_MIN_INT -5.0f
-#define PID_LIM_MAX_INT  5.0f
-
-#define SAMPLE_TIME_S 0.02f
 
 #include <tuple>
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 #include <queue>
-
- #include "uav_agent/controllers/pid.h"
-//#include "uav_agent/controllers/pid_alt.h"
-
+#include "uav_agent/controllers/pid.h"
 #include "uav_agent/base/base.h"
 #include "uav_agent/base/control.h"
-
 #include "gcs/Action.h"
 #include "gcs/Waypoint.h"
 #include "gcs/Missionparameters.h"
@@ -52,7 +34,6 @@ class Planner: public Base
         ~Planner();
         void setWaypoint(sensor_msgs::NavSatFix new_waypoint);
         void fly();
-        //void horizontalControl();
         void flyHome();
         void setYawAngle();
         void getLocalPositionOffset(geometry_msgs::Vector3 &deltaENU, sensor_msgs::NavSatFix &target, sensor_msgs::NavSatFix &origin);
@@ -70,11 +51,14 @@ class Planner: public Base
         Eigen::Vector3d getHomeEffort(Eigen::Vector3d &target);
         Eigen::Vector3d setTargetVector(float target_x, float target_y, float target_z);
         Eigen::Vector3d setHomeTarget(float x, float y, float z);
+        float setYaw(float yaw);
         void flightAnomalyCallback(const dji_sdk::FlightAnomaly::ConstPtr &msg);
         void missionParamCallback(const gcs::Missionparameters::ConstPtr &msg);
         void missionPauseCallback(const std_msgs::UInt8::ConstPtr& msg);
         void waypointCallback(const gcs::Waypoint::ConstPtr &msg);
         void missionActionCallback(const gcs::Action::ConstPtr &msg);
+        double getPositionError(sensor_msgs::NavSatFix &origin, gcs::Waypoint &target);
+        void computeLandingError();
 
     private:
         HLControl control;
@@ -89,7 +73,6 @@ class Planner: public Base
 
         int uav_speed;
         int mission_end_action;
-       // gcs::Waypoint waypoint;
         int drone_action;
         int play_pause;
 
@@ -111,6 +94,12 @@ class Planner: public Base
         uint32_t flight_anomaly_data;
         float kp, ki, kd;
         float kp_z, ki_z, kd_z;
+        float kp_y, ki_y, kd_y;
+        float z_max = 5;
+        float z_min = -4;
+        float z_clamp_p;
+        float z_clamp_n;
+        double total_landing_error;
        
 
         sensor_msgs::NavSatFix start_gps_location;
@@ -140,6 +129,8 @@ class Planner: public Base
                                 DJISDK::STABLE_ENABLE);
 
          ros::Publisher control_publisher;
+         ros::Publisher error_publisher;
+
          
 
 
